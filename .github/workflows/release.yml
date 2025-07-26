@@ -41,14 +41,7 @@ jobs:
         run: pytest tests/
 
       - name: Build with PyInstaller
-        run: |
-          pyinstaller ^
-            --onefile ^
-            --windowed ^
-            --icon=src/favicon.ico ^
-            --add-data "src/favicon.ico;." ^
-            --name ClipperTool ^
-            src/main.py
+        run: pyinstaller --onefile --windowed --icon=src/favicon.ico --add-data "src/favicon.ico;." --name ClipperTool src/main.py
 
       - name: Archive .exe into .zip
         run: |
