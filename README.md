@@ -135,15 +135,15 @@ ClipperTool is open source and ready for your magic touch!
 
 ---
 
-## License 📄
+## 📄 License
 
-MIT License - Feel free to use, modify, and distribute!
-
+This project is open source and licensed under the **[Eclipse Public License 2.0](https://www.eclipse.org/legal/epl-2.0/)**.  
+Feel free to use, modify, and share it under the terms of the EPL.
 ---
 
 ## Made With ❤️
 
-Created with Python, caffeine, and a healthy obsession with clean clipboards.
+Created with Python, and a healthy obsession with clean clipboards.
 
 ---
 
