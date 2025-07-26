@@ -34,8 +34,8 @@ jobs:
       - name: Run flake8 style checks
         run: flake8 src/ --max-line-length=120
 
-      - name: Run tests
-        run: pytest tests/
+      - name: Run tests with virtual display
+        run: xvfb-run pytest tests/
 
       - name: Build with PyInstaller
         run: pyinstaller src/main.py --onefile --icon=src/favicon.ico --name clipboard-app
