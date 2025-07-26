@@ -8,6 +8,7 @@ import pyperclip
 import ttkbootstrap as tb
 import sys
 
+
 CONFIG_DIR = os.path.join(os.path.expanduser("~"), "Documents", "ClipperTool")
 CONFIG_FILE = os.path.join(CONFIG_DIR, "config.json")
 FILTERS_FOLDER = os.path.join(CONFIG_DIR, "Configs")
@@ -21,7 +22,6 @@ def load_config():
     try:
         with open(CONFIG_FILE, "r") as f:
             data = json.load(f)
-        # ensure keys exist
         if "selected_file" not in data:
             data["selected_file"] = ""
         if "mode" not in data:
@@ -49,7 +49,6 @@ class ClipboardCleaner:
         self.keywords = keywords
         self.mode = mode
 
-
     def process_text(self, text):
         lines = text.splitlines()
         if self.mode == "remove":
@@ -72,7 +71,6 @@ class ClipperApp:
         self.create_widgets()
         self.load_filter_files()
         self.update_ui()
-
 
     def create_widgets(self):
         self.style = tb.Style("cosmo")
@@ -98,7 +96,6 @@ class ClipperApp:
 
         self.root.config(menu=menubar)
 
-
     def load_filter_files(self):
         files = [f for f in os.listdir(FILTERS_FOLDER) if f.endswith(".txt")]
         self.file_dropdown['values'] = files
@@ -110,21 +107,18 @@ class ClipperApp:
         elif files:
             self.file_var.set(files[0])
         else:
-            self.file_var.set("")  # no files available
+            self.file_var.set("")
 
         self.update_ui()
-
 
     def set_mode(self, mode):
         self.config["mode"] = mode
         self.save_and_update()
 
-
     def save_and_update(self):
         self.config["selected_file"] = self.file_var.get()
         save_config(self.config)
         self.update_ui()
-
 
     def update_ui(self):
         mode = self.config.get("mode", "remove")
@@ -139,13 +133,11 @@ class ClipperApp:
             text=f"Clipper is {status_text}. Press to {'stop' if self.running else 'run'} it."
         )
 
-
     def toggle_running(self):
         self.running = not self.running
         self.save_and_update()
         if self.running:
             threading.Thread(target=self.clipboard_loop, daemon=True).start()
-
 
     def clipboard_loop(self):
         while self.running:
@@ -159,7 +151,6 @@ class ClipperApp:
             except Exception as e:
                 print(f"Error: {e}")
             time.sleep(0.5)
-
 
     def clean_clipboard(self, text):
         filename = self.file_var.get()
