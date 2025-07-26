@@ -8,7 +8,6 @@ import pyperclip
 import ttkbootstrap as tb
 import sys
 
-
 CONFIG_DIR = os.path.join(os.path.expanduser("~"), "Documents", "ClipperTool")
 CONFIG_FILE = os.path.join(CONFIG_DIR, "config.json")
 FILTERS_FOLDER = os.path.join(CONFIG_DIR, "Configs")
@@ -37,10 +36,13 @@ def save_config(config):
 
 
 def resource_path(relative_path):
+    """Get absolute path to resource, works for dev and for PyInstaller"""
     try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
         base_path = sys._MEIPASS
     except Exception:
-        base_path = os.path.abspath("..")
+        # Development mode - get the directory where this script is located
+        base_path = os.path.dirname(os.path.abspath(__file__))
     return os.path.join(base_path, relative_path)
 
 
@@ -167,6 +169,14 @@ class ClipperTool:
 
 if __name__ == "__main__":
     app = tk.Tk()
-    app.iconbitmap(resource_path("src/favicon.ico"))
+
+    # Try to set the icon - handle gracefully if it fails
+    try:
+        icon_path = resource_path("favicon.ico")
+        if os.path.exists(icon_path):
+            app.iconbitmap(icon_path)
+    except Exception as e:
+        print(f"Could not load icon: {e}")
+
     ClipperTool(app)
     app.mainloop()

@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     steps:
       - name: Checkout code
@@ -38,23 +38,50 @@ jobs:
         run: flake8 src/ --max-line-length=120
 
       - name: Run tests with virtual display
-        run: xvfb-run pytest tests/
+        run: pytest tests/
 
       - name: Build with PyInstaller
-        run: pyinstaller src/main.py --onefile --icon=src/favicon.ico --name clipboard-app
+        run: pyinstaller src/main.py --onefile --windowed --icon=src/favicon.ico --name ClipperTool
 
       - name: Archive build
         run: |
           mkdir dist_upload
-          cp dist/clipboard-app dist_upload/
-          tar -czvf clipboard-app.tar.gz -C dist_upload .
+          cp dist/ClipperTool.exe dist_upload/
+          Compress-Archive -Path dist_upload/* -DestinationPath ClipperTool.zip
+
+      - name: Get next version
+        id: version
+        run: |
+          # Get the latest tag, or start with v1.0.0 if no tags exist
+          latest_tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          echo "Latest tag: $latest_tag"
+          
+          # Extract version number and increment patch version
+          version=${latest_tag#v}
+          IFS='.' read -r major minor patch <<< "$version"
+          new_patch=$((patch + 1))
+          new_version="v$major.$minor.$new_patch"
+          
+          echo "New version: $new_version"
+          echo "version=$new_version" >> $GITHUB_OUTPUT
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.sha }}
-          name: Release ${{ github.sha }}
-          body: Auto-generated release from push to `main`.
-          files: clipboard-app.tar.gz
+          tag_name: ${{ steps.version.outputs.version }}
+          name: ClipperTool ${{ steps.version.outputs.version }}
+          body: |
+            ## ClipperTool Release ${{ steps.version.outputs.version }}
+            
+            Auto-generated release from push to `main`.
+            
+            **Changes:**
+            - Latest updates from commit ${{ github.sha }}
+            
+            **Download:**
+            - Extract `ClipperTool.zip` to get the `ClipperTool.exe` executable
+            
+            **Commit:** ${{ github.sha }}
+          files: ClipperTool.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
