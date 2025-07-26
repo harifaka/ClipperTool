@@ -1,17 +1,19 @@
 import tkinter as tk
-from tkinter import ttk, filedialog, messagebox
+from tkinter import ttk
 import os
 import json
 import threading
 import time
 import pyperclip
 import ttkbootstrap as tb
+import sys
 
 CONFIG_DIR = os.path.join(os.path.expanduser("~"), "Documents", "ClipperTool")
 CONFIG_FILE = os.path.join(CONFIG_DIR, "config.json")
 FILTERS_FOLDER = os.path.join(CONFIG_DIR, "Configs")
 
 os.makedirs(FILTERS_FOLDER, exist_ok=True)
+
 
 def load_config():
     if not os.path.exists(CONFIG_FILE):
@@ -33,6 +35,7 @@ def save_config(config):
     with open(CONFIG_FILE, "w") as f:
         json.dump(config, f)
 
+
 def resource_path(relative_path):
     try:
         base_path = sys._MEIPASS
@@ -40,10 +43,12 @@ def resource_path(relative_path):
         base_path = os.path.abspath("..")
     return os.path.join(base_path, relative_path)
 
+
 class ClipboardCleaner:
     def __init__(self, keywords, mode):
         self.keywords = keywords
         self.mode = mode
+
 
     def process_text(self, text):
         lines = text.splitlines()
@@ -52,6 +57,7 @@ class ClipboardCleaner:
         else:
             filtered_lines = [line for line in lines if any(keyword in line for keyword in self.keywords)]
         return "\n".join(filtered_lines)
+
 
 class ClipperApp:
     def __init__(self, root):
@@ -66,6 +72,7 @@ class ClipperApp:
         self.create_widgets()
         self.load_filter_files()
         self.update_ui()
+
 
     def create_widgets(self):
         self.style = tb.Style("cosmo")
@@ -91,6 +98,7 @@ class ClipperApp:
 
         self.root.config(menu=menubar)
 
+
     def load_filter_files(self):
         files = [f for f in os.listdir(FILTERS_FOLDER) if f.endswith(".txt")]
         self.file_dropdown['values'] = files
@@ -106,14 +114,17 @@ class ClipperApp:
 
         self.update_ui()
 
+
     def set_mode(self, mode):
         self.config["mode"] = mode
         self.save_and_update()
+
 
     def save_and_update(self):
         self.config["selected_file"] = self.file_var.get()
         save_config(self.config)
         self.update_ui()
+
 
     def update_ui(self):
         mode = self.config.get("mode", "remove")
@@ -128,11 +139,13 @@ class ClipperApp:
             text=f"Clipper is {status_text}. Press to {'stop' if self.running else 'run'} it."
         )
 
+
     def toggle_running(self):
         self.running = not self.running
         self.save_and_update()
         if self.running:
             threading.Thread(target=self.clipboard_loop, daemon=True).start()
+
 
     def clipboard_loop(self):
         while self.running:
@@ -147,6 +160,7 @@ class ClipperApp:
                 print(f"Error: {e}")
             time.sleep(0.5)
 
+
     def clean_clipboard(self, text):
         filename = self.file_var.get()
         filepath = os.path.join(FILTERS_FOLDER, filename)
@@ -159,8 +173,8 @@ class ClipperApp:
         cleaner = ClipboardCleaner(keywords, self.config["mode"])
         return cleaner.process_text(text)
 
+
 if __name__ == "__main__":
-    import sys
     app = tk.Tk()
     app.iconbitmap(resource_path("src/favicon.ico"))
     ClipperApp(app)
