@@ -1,0 +1,57 @@
+name: Release ClipperTool
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Cache pip
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest flake8 pyinstaller
+
+      - name: Run flake8 style checks
+        run: flake8 src/ --max-line-length=120
+
+      - name: Run tests
+        run: pytest tests/
+
+      - name: Build with PyInstaller
+        run: pyinstaller src/main.py --onefile --icon=src/favicon.ico --name clipboard-app
+
+      - name: Archive build
+        run: |
+          mkdir dist_upload
+          cp dist/clipboard-app dist_upload/
+          tar -czvf clipboard-app.tar.gz -C dist_upload .
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.sha }}
+          name: Release ${{ github.sha }}
+          body: Auto-generated release from push to `main`.
+          files: clipboard-app.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
