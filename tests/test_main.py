@@ -1,9 +1,13 @@
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src')))
+
+from main import ClipperTool, resource_path
+
 import threading
 import time
 import pytest
-
 import tkinter as tk
-from src.main import ClipperApp, resource_path
 
 @pytest.fixture
 def app():
@@ -13,7 +17,7 @@ def app():
         root.iconbitmap(resource_path("src/favicon.ico"))
     except Exception:
         pass
-    app = ClipperApp(root)
+    app = ClipperTool(root)
     yield app
     # Properly destroy the window after test
     root.destroy()

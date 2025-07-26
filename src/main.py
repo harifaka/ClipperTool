@@ -58,7 +58,7 @@ class ClipboardCleaner:
         return "\n".join(filtered_lines)
 
 
-class ClipperApp:
+class ClipperTool:
     def __init__(self, root):
         self.root = root
         self.root.geometry("500x300")
@@ -168,5 +168,5 @@ class ClipperApp:
 if __name__ == "__main__":
     app = tk.Tk()
     app.iconbitmap(resource_path("src/favicon.ico"))
-    ClipperApp(app)
+    ClipperTool(app)
     app.mainloop()
