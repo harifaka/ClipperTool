@@ -1,49 +1,30 @@
 """
-Clipboard processing logic for ClipperTool.
-Handles filtering text based on keywords and mode settings.
+Core clipboard processing functionality
 """
 
 import threading
 import time
 import pyperclip
-from typing import List, Callable, Optional
-from enum import Enum
+from src.config.config_manager import ConfigManager
 
 
-class FilterMode(Enum):
-    """Enumeration for filter modes."""
-    REMOVE = "remove"
-    KEEP = "keep"
+class ClipboardCleaner:
+    """Handles text filtering based on keywords and mode"""
 
-
-class ClipboardProcessor:
-    """Handles clipboard text processing and filtering."""
-
-    def __init__(self, keywords: List[str], mode: FilterMode):
+    def __init__(self, keywords, mode):
         self.keywords = keywords
         self.mode = mode
 
-    def process_text(self, text: str) -> str:
-        """
-        Process text based on keywords and mode.
-
-        Args:
-            text: Input text to process
-
-        Returns:
-            Filtered text
-        """
-        if not text or not self.keywords:
-            return text
-
+    def process_text(self, text):
+        """Process text based on keywords and mode"""
         lines = text.splitlines()
 
-        if self.mode == FilterMode.REMOVE:
+        if self.mode == "remove":
             filtered_lines = [
                 line for line in lines
                 if not any(keyword in line for keyword in self.keywords)
             ]
-        else:  # KEEP mode
+        else:  # keep mode
             filtered_lines = [
                 line for line in lines
                 if any(keyword in line for keyword in self.keywords)
@@ -52,60 +33,89 @@ class ClipboardProcessor:
         return "\n".join(filtered_lines)
 
 
-class ClipboardMonitor:
-    """Monitors and processes clipboard changes."""
+class ClipboardProcessor:
+    """Main clipboard processing engine"""
 
-    def __init__(self):
+    def __init__(self, config_manager=None):
+        self.config_manager = config_manager or ConfigManager()
         self.running = False
         self.last_clipboard = None
-        self.processor: Optional[ClipboardProcessor] = None
-        self.error_callback: Optional[Callable[[str], None]] = None
-        self._monitor_thread: Optional[threading.Thread] = None
+        self.processed_count = 0
+        self.processing_thread = None
 
-    def set_processor(self, processor: ClipboardProcessor) -> None:
-        """Set the clipboard processor."""
-        self.processor = processor
+        # Callbacks for UI updates
+        self.on_processed_callback = None
+        self.on_error_callback = None
 
-    def set_error_callback(self, callback: Callable[[str], None]) -> None:
-        """Set error callback function."""
-        self.error_callback = callback
+    def set_callbacks(self, on_processed=None, on_error=None):
+        """Set callback functions for UI updates"""
+        if on_processed:
+            self.on_processed_callback = on_processed
+        if on_error:
+            self.on_error_callback = on_error
 
-    def start_monitoring(self) -> None:
-        """Start monitoring clipboard changes."""
+    def start_processing(self, config):
+        """Start clipboard monitoring and processing"""
         if self.running:
             return
 
         self.running = True
-        self._monitor_thread = threading.Thread(target=self._monitor_loop, daemon=True)
-        self._monitor_thread.start()
+        self.config = config
+        self.processing_thread = threading.Thread(
+            target=self._clipboard_loop,
+            daemon=True
+        )
+        self.processing_thread.start()
 
-    def stop_monitoring(self) -> None:
-        """Stop monitoring clipboard changes."""
+    def stop_processing(self):
+        """Stop clipboard monitoring"""
         self.running = False
-        if self._monitor_thread:
-            self._monitor_thread.join(timeout=1.0)
+        if self.processing_thread:
+            self.processing_thread.join(timeout=1.0)
 
-    def is_running(self) -> bool:
-        """Check if monitoring is active."""
-        return self.running
+    def reset_stats(self):
+        """Reset processing statistics"""
+        self.processed_count = 0
 
-    def _monitor_loop(self) -> None:
-        """Main monitoring loop."""
+    def get_processed_count(self):
+        """Get number of processed items"""
+        return self.processed_count
+
+    def _clipboard_loop(self):
+        """Main clipboard monitoring loop"""
         while self.running:
             try:
-                current_text = pyperclip.paste()
+                text = pyperclip.paste()
 
-                if current_text != self.last_clipboard and self.processor:
-                    self.last_clipboard = current_text
-                    processed_text = self.processor.process_text(current_text)
+                if text != self.last_clipboard:
+                    self.last_clipboard = text
+                    cleaned = self._clean_clipboard(text)
 
-                    if processed_text != current_text:
-                        pyperclip.copy(processed_text)
+                    if cleaned != text:
+                        pyperclip.copy(cleaned)
+                        self.processed_count += 1
+
+                        # Notify UI of processing
+                        if self.on_processed_callback:
+                            self.on_processed_callback(self.processed_count)
 
             except Exception as e:
-                if self.error_callback:
-                    self.error_callback(f"Clipboard monitoring error: {e}")
+                if self.on_error_callback:
+                    self.on_error_callback(str(e))
                 else:
-                    print(f"Clipboard monitoring error: {e}")
+                    print(f"Clipboard processing error: {e}")
 
             time.sleep(0.5)
+
+    def _clean_clipboard(self, text):
+        """Clean clipboard text based on current configuration"""
+        filename = self.config.get("selected_file", "")
+        if not filename:
+            return text
+
+        keywords = self.config_manager.load_keywords_from_file(filename)
+        if not keywords:
+            return text
+
+        cleaner = ClipboardCleaner(keywords, self.config.get("mode", "remove"))
+        return cleaner.process_text(text)
