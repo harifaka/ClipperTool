@@ -7,7 +7,6 @@ import threading
 import time
 import pyperclip
 import ttkbootstrap as tb
-from ttkbootstrap.constants import *
 import sys
 import subprocess
 import platform
@@ -18,21 +17,22 @@ FILTERS_FOLDER = os.path.join(CONFIG_DIR, "Configs")
 
 os.makedirs(FILTERS_FOLDER, exist_ok=True)
 
-# Modern color scheme
+# Modern high-tech color scheme
 COLORS = {
-    'primary': '#2563eb',
-    'primary_hover': '#1d4ed8',
-    'secondary': '#64748b',
-    'success': '#10b981',
-    'success_hover': '#059669',
-    'danger': '#ef4444',
-    'danger_hover': '#dc2626',
-    'warning': '#f59e0b',
-    'dark': '#1e293b',
-    'light': '#f8fafc',
-    'border': '#e2e8f0',
-    'text_primary': '#0f172a',
-    'text_secondary': '#64748b'
+    'bg_primary': '#0f0f0f',
+    'bg_secondary': '#1a1a1a',
+    'bg_card': '#252525',
+    'accent_gold': '#d4af37',
+    'accent_gold_hover': '#f4cf47',
+    'accent_blue': '#00d4ff',
+    'accent_green': '#00ff88',
+    'accent_red': '#ff4757',
+    'text_primary': '#ffffff',
+    'text_secondary': '#b0b0b0',
+    'border': '#333333',
+    'success': '#00ff88',
+    'danger': '#ff4757',
+    'warning': '#ffa726'
 }
 
 
@@ -79,51 +79,217 @@ class ClipboardCleaner:
         return "\n".join(filtered_lines)
 
 
-class ModernButton(ttk.Frame):
-    def __init__(self, parent, text, command, style_type="primary", **kwargs):
-        super().__init__(parent, **kwargs)
+class GoldenButton(tk.Frame):
+    def __init__(self, parent, text, command, icon="", active=False, **kwargs):
+        super().__init__(parent, bg=COLORS['bg_card'], **kwargs)
         self.command = command
-        self.style_type = style_type
+        self.active = active
+        self.icon = icon
+        self.text = text
 
-        # Create the button with modern styling
-        self.button = ttk.Button(
+        # Create canvas for custom drawing
+        self.canvas = tk.Canvas(
             self,
-            text=text,
-            command=command,
-            style=f"{style_type.title()}.TButton"
+            height=50,
+            bg=COLORS['bg_card'],
+            highlightthickness=0,
+            cursor="hand2"
         )
-        self.button.pack(fill="both", expand=True)
+        self.canvas.pack(fill="both", expand=True, padx=2, pady=2)
+
+        # Bind events
+        self.canvas.bind("<Button-1>", lambda e: self.command())
+        self.canvas.bind("<Enter>", self.on_enter)
+        self.canvas.bind("<Leave>", self.on_leave)
+
+        # Initial draw
+        self.draw_button()
+
+    def draw_button(self):
+        self.canvas.delete("all")
+        width = self.canvas.winfo_width() or 200
+        height = self.canvas.winfo_height() or 50
+
+        if width <= 1 or height <= 1:
+            self.after(10, self.draw_button)
+            return
+
+        # Golden frame colors
+        if self.active:
+            frame_color = COLORS['accent_gold']
+            bg_color = COLORS['bg_secondary']
+            text_color = COLORS['accent_gold']
+        else:
+            frame_color = COLORS['border']
+            bg_color = COLORS['bg_card']
+            text_color = COLORS['text_secondary']
+
+        # Draw futuristic frame
+        points = [
+            10, 5,  # Top left
+            width - 10, 5,  # Top right
+            width - 5, 10,  # Top right corner
+            width - 5, height - 10,  # Bottom right
+            width - 10, height - 5,  # Bottom right corner
+            10, height - 5,  # Bottom left
+            5, height - 10,  # Bottom left corner
+            5, 10  # Top left corner
+        ]
+
+        # Background
+        self.canvas.create_polygon(points, fill=bg_color, outline=frame_color, width=2)
+
+        # Inner glow effect for active state
+        if self.active:
+            inner_points = [
+                12, 7,
+                width - 12, 7,
+                width - 7, 12,
+                width - 7, height - 12,
+                width - 12, height - 7,
+                12, height - 7,
+                7, height - 12,
+                7, 12
+            ]
+            self.canvas.create_polygon(inner_points, fill="", outline=COLORS['accent_gold'], width=1)
+
+        # Text
+        display_text = f"{self.icon} {self.text}" if self.icon else self.text
+        self.canvas.create_text(
+            width / 2, height / 2,
+            text=display_text,
+            fill=text_color,
+            font=("Consolas", 11, "bold"),
+            anchor="center"
+        )
+
+    def on_enter(self, event):
+        if not self.active:
+            self.canvas.configure(cursor="hand2")
+            # Redraw with hover effect
+            self.draw_hover_effect()
+
+    def on_leave(self, event):
+        self.draw_button()
+
+    def draw_hover_effect(self):
+        self.canvas.delete("all")
+        width = self.canvas.winfo_width()
+        height = self.canvas.winfo_height()
+
+        # Hover effect
+        frame_color = COLORS['accent_gold'] if not self.active else COLORS['accent_gold_hover']
+        bg_color = COLORS['bg_secondary']
+        text_color = COLORS['accent_gold_hover']
+
+        points = [
+            10, 5, width - 10, 5, width - 5, 10, width - 5, height - 10,
+                   width - 10, height - 5, 10, height - 5, 5, height - 10, 5, 10
+        ]
+
+        self.canvas.create_polygon(points, fill=bg_color, outline=frame_color, width=2)
+
+        display_text = f"{self.icon} {self.text}" if self.icon else self.text
+        self.canvas.create_text(
+            width / 2, height / 2,
+            text=display_text,
+            fill=text_color,
+            font=("Consolas", 11, "bold"),
+            anchor="center"
+        )
+
+    def set_active(self, active):
+        self.active = active
+        self.draw_button()
 
 
-class StatusIndicator(ttk.Frame):
+class StatusIndicator(tk.Frame):
     def __init__(self, parent, **kwargs):
-        super().__init__(parent, **kwargs)
+        super().__init__(parent, bg=COLORS['bg_card'], **kwargs)
 
-        # Status dot
-        self.status_canvas = tk.Canvas(self, width=12, height=12, highlightthickness=0)
-        self.status_canvas.pack(side="left", padx=(0, 8))
+        # Status canvas for animated indicator
+        self.status_canvas = tk.Canvas(
+            self,
+            width=16,
+            height=16,
+            bg=COLORS['bg_card'],
+            highlightthickness=0
+        )
+        self.status_canvas.pack(side="left", padx=(0, 12))
 
         # Status text
-        self.status_label = ttk.Label(self, text="Stopped", font=("Segoe UI", 9, "bold"))
+        self.status_label = tk.Label(
+            self,
+            text="OFFLINE",
+            font=("Consolas", 12, "bold"),
+            bg=COLORS['bg_card'],
+            fg=COLORS['text_secondary']
+        )
         self.status_label.pack(side="left")
 
+        self.running = False
+        self.animation_step = 0
         self.set_status(False)
 
     def set_status(self, running):
+        self.running = running
+        if running:
+            self.status_label.configure(
+                text="ONLINE",
+                fg=COLORS['success']
+            )
+            self.animate_indicator()
+        else:
+            self.status_label.configure(
+                text="OFFLINE",
+                fg=COLORS['text_secondary']
+            )
+            self.draw_static_indicator()
+
+    def draw_static_indicator(self):
         self.status_canvas.delete("all")
-        color = COLORS['success'] if running else COLORS['secondary']
-        self.status_canvas.create_oval(2, 2, 10, 10, fill=color, outline=color)
-        self.status_label.configure(text="Running" if running else "Stopped")
+        color = COLORS['success'] if self.running else COLORS['text_secondary']
+        self.status_canvas.create_oval(2, 2, 14, 14, fill=color, outline=color)
+
+    def animate_indicator(self):
+        if not self.running:
+            return
+
+        self.status_canvas.delete("all")
+
+        # Pulsing effect
+        base_size = 4
+        pulse_size = int(2 + 2 * abs(0.5 - (self.animation_step % 60) / 60))
+
+        # Outer ring
+        self.status_canvas.create_oval(
+            8 - base_size - pulse_size, 8 - base_size - pulse_size,
+            8 + base_size + pulse_size, 8 + base_size + pulse_size,
+            outline=COLORS['success'],
+            width=1
+        )
+
+        # Inner dot
+        self.status_canvas.create_oval(
+            8 - base_size, 8 - base_size,
+            8 + base_size, 8 + base_size,
+            fill=COLORS['success'],
+            outline=COLORS['success']
+        )
+
+        self.animation_step += 1
+        self.after(50, self.animate_indicator)
 
 
 class ClipperTool:
     def __init__(self, root):
         self.root = root
-        self.root.geometry("700x550")
-        self.root.minsize(600, 500)
+        self.root.geometry("800x650")
+        self.root.minsize(700, 600)
+        self.root.configure(bg=COLORS['bg_primary'])
 
         # Initialize with dark theme
-        self.style = tb.Style("superhero")
+        self.style = tb.Style("cyborg")
 
         self.config = load_config()
         self.running = False
@@ -136,52 +302,76 @@ class ClipperTool:
         self.update_ui()
 
     def setup_styles(self):
-        """Configure modern button and widget styles"""
-        # Primary button style
+        """Configure modern high-tech styles"""
+        self.style.configure("Card.TFrame", background=COLORS['bg_card'])
+        self.style.configure("Main.TFrame", background=COLORS['bg_primary'])
+
+        # Modern labels
         self.style.configure(
-            "Primary.TButton",
-            font=("Segoe UI", 10, "bold"),
-            borderwidth=0,
-            focuscolor="none",
-            relief="flat"
+            "Title.TLabel",
+            background=COLORS['bg_primary'],
+            foreground=COLORS['text_primary'],
+            font=("Consolas", 28, "bold")
         )
 
-        # Success button style
         self.style.configure(
-            "Success.TButton",
-            font=("Segoe UI", 10, "bold"),
-            borderwidth=0,
-            focuscolor="none",
-            relief="flat"
+            "Subtitle.TLabel",
+            background=COLORS['bg_card'],
+            foreground=COLORS['text_secondary'],
+            font=("Consolas", 11)
         )
 
-        # Danger button style
         self.style.configure(
-            "Danger.TButton",
-            font=("Segoe UI", 10, "bold"),
-            borderwidth=0,
-            focuscolor="none",
-            relief="flat"
+            "Header.TLabel",
+            background=COLORS['bg_card'],
+            foreground=COLORS['accent_gold'],
+            font=("Consolas", 12, "bold")
         )
 
-        # Modern combobox style
+        # Modern combobox
         self.style.configure(
             "Modern.TCombobox",
-            fieldbackground="white",
+            fieldbackground=COLORS['bg_secondary'],
+            background=COLORS['bg_secondary'],
+            foreground=COLORS['text_primary'],
             borderwidth=1,
-            relief="solid"
+            relief="solid",
+            font=("Consolas", 11)
+        )
+
+        # Modern buttons
+        self.style.configure(
+            "Modern.TButton",
+            background=COLORS['bg_secondary'],
+            foreground=COLORS['text_primary'],
+            borderwidth=1,
+            focuscolor="none",
+            font=("Consolas", 10)
+        )
+
+        # Main action button
+        self.style.configure(
+            "Action.TButton",
+            background=COLORS['success'],
+            foreground=COLORS['bg_primary'],
+            borderwidth=0,
+            focuscolor="none",
+            font=("Consolas", 14, "bold")
         )
 
     def create_modern_ui(self):
-        # Main container with padding
-        main_container = ttk.Frame(self.root)
-        main_container.pack(fill="both", expand=True, padx=20, pady=20)
+        # Main container
+        main_container = tk.Frame(self.root, bg=COLORS['bg_primary'])
+        main_container.pack(fill="both", expand=True, padx=25, pady=25)
 
         # Header section
         self.create_header(main_container)
 
         # Configuration section
         self.create_config_section(main_container)
+
+        # Mode selection section
+        self.create_mode_section(main_container)
 
         # Control section
         self.create_control_section(main_container)
@@ -193,160 +383,206 @@ class ClipperTool:
         self.create_footer(main_container)
 
     def create_header(self, parent):
-        header_frame = ttk.Frame(parent)
+        header_frame = tk.Frame(parent, bg=COLORS['bg_primary'])
         header_frame.pack(fill="x", pady=(0, 30))
 
-        # Title
-        title_label = ttk.Label(
+        # Title with tech styling
+        title_label = tk.Label(
             header_frame,
-            text="ClipperTool Pro",
-            font=("Segoe UI", 24, "bold")
+            text="◢ CLIPPERTOOL ◣",
+            font=("Consolas", 24, "bold"),
+            bg=COLORS['bg_primary'],
+            fg=COLORS['accent_gold']
         )
         title_label.pack(side="left")
 
-        # Mode indicator
-        self.mode_frame = ttk.Frame(header_frame)
-        self.mode_frame.pack(side="right")
-
-        self.mode_label = ttk.Label(
-            self.mode_frame,
-            text="REMOVE MODE",
-            font=("Segoe UI", 10, "bold"),
-            foreground="white"
-        )
-        self.mode_label.pack(padx=12, pady=6)
+        # Status indicator
+        self.status_indicator = StatusIndicator(header_frame)
+        self.status_indicator.pack(side="right")
 
     def create_config_section(self, parent):
         # Configuration card
-        config_card = ttk.LabelFrame(parent, text="Configuration", padding=20)
-        config_card.pack(fill="x", pady=(0, 20))
+        config_card = tk.Frame(parent, bg=COLORS['bg_card'], relief="raised", bd=1)
+        config_card.pack(fill="x", pady=(0, 20), padx=2)
 
-        # Config file selection
-        config_label = ttk.Label(config_card, text="Select Configuration File:", font=("Segoe UI", 10, "bold"))
-        config_label.pack(anchor="w", pady=(0, 8))
+        # Card header
+        header_frame = tk.Frame(config_card, bg=COLORS['bg_card'])
+        header_frame.pack(fill="x", padx=20, pady=(15, 10))
+
+        tk.Label(
+            header_frame,
+            text="▼ CONFIGURATION MATRIX",
+            font=("Consolas", 12, "bold"),
+            bg=COLORS['bg_card'],
+            fg=COLORS['accent_gold']
+        ).pack(anchor="w")
+
+        # Config content
+        content_frame = tk.Frame(config_card, bg=COLORS['bg_card'])
+        content_frame.pack(fill="x", padx=20, pady=(0, 20))
+
+        tk.Label(
+            content_frame,
+            text="Select Filter Configuration:",
+            font=("Consolas", 10),
+            bg=COLORS['bg_card'],
+            fg=COLORS['text_secondary']
+        ).pack(anchor="w", pady=(0, 8))
 
         self.file_var = tk.StringVar()
         self.file_dropdown = ttk.Combobox(
-            config_card,
+            content_frame,
             textvariable=self.file_var,
             state="readonly",
-            font=("Segoe UI", 10),
             style="Modern.TCombobox"
         )
-        self.file_dropdown.pack(fill="x", pady=(0, 15))
+        self.file_dropdown.pack(fill="x", pady=(0, 15), ipady=8)
         self.file_dropdown.bind("<<ComboboxSelected>>", lambda e: self.save_and_update())
 
         # Action buttons
-        button_container = ttk.Frame(config_card)
+        button_container = tk.Frame(content_frame, bg=COLORS['bg_card'])
         button_container.pack(fill="x")
 
-        # New config button
-        new_btn = ttk.Button(
+        ttk.Button(
             button_container,
-            text="✚ New Config",
+            text="+ New Config",
             command=self.create_new_config,
-            style="Primary.TButton"
-        )
-        new_btn.pack(side="left", padx=(0, 10), fill="x", expand=True)
+            style="Modern.TButton"
+        ).pack(side="left", padx=(0, 10), fill="x", expand=True)
 
-        # Edit config button
-        edit_btn = ttk.Button(
+        ttk.Button(
             button_container,
-            text="✏ Edit Config",
+            text="⚙ Edit Config",
             command=self.open_selected_config,
-            style="Success.TButton"
-        )
-        edit_btn.pack(side="left", padx=(5, 10), fill="x", expand=True)
+            style="Modern.TButton"
+        ).pack(side="left", padx=(5, 10), fill="x", expand=True)
 
-        # Open folder button
-        folder_btn = ttk.Button(
+        ttk.Button(
             button_container,
             text="📁 Open Folder",
             command=self.open_config_folder,
-            style="Secondary.TButton"
+            style="Modern.TButton"
+        ).pack(side="left", padx=(5, 0), fill="x", expand=True)
+
+    def create_mode_section(self, parent):
+        # Mode selection card
+        mode_card = tk.Frame(parent, bg=COLORS['bg_card'], relief="raised", bd=1)
+        mode_card.pack(fill="x", pady=(0, 20), padx=2)
+
+        # Card header
+        header_frame = tk.Frame(mode_card, bg=COLORS['bg_card'])
+        header_frame.pack(fill="x", padx=20, pady=(15, 10))
+
+        tk.Label(
+            header_frame,
+            text="▼ PROCESSING MODE",
+            font=("Consolas", 12, "bold"),
+            bg=COLORS['bg_card'],
+            fg=COLORS['accent_gold']
+        ).pack(anchor="w")
+
+        # Mode buttons
+        mode_frame = tk.Frame(mode_card, bg=COLORS['bg_card'])
+        mode_frame.pack(fill="x", padx=20, pady=(0, 20))
+
+        button_frame = tk.Frame(mode_frame, bg=COLORS['bg_card'])
+        button_frame.pack(fill="x")
+
+        self.remove_mode_btn = GoldenButton(
+            button_frame,
+            text="REMOVE LINES",
+            command=lambda: self.set_mode("remove"),
+            icon="⊗"
         )
-        folder_btn.pack(side="left", padx=(5, 0), fill="x", expand=True)
+        self.remove_mode_btn.pack(side="left", fill="both", expand=True, padx=(0, 10))
+
+        self.keep_mode_btn = GoldenButton(
+            button_frame,
+            text="KEEP LINES",
+            command=lambda: self.set_mode("keep"),
+            icon="⊕"
+        )
+        self.keep_mode_btn.pack(side="left", fill="both", expand=True, padx=(10, 0))
 
     def create_control_section(self, parent):
         # Control card
-        control_card = ttk.LabelFrame(parent, text="Control Panel", padding=20)
-        control_card.pack(fill="x", pady=(0, 20))
+        control_card = tk.Frame(parent, bg=COLORS['bg_card'], relief="raised", bd=1)
+        control_card.pack(fill="x", pady=(0, 20), padx=2)
 
-        # Status indicator
-        status_frame = ttk.Frame(control_card)
-        status_frame.pack(fill="x", pady=(0, 15))
+        # Card header
+        header_frame = tk.Frame(control_card, bg=COLORS['bg_card'])
+        header_frame.pack(fill="x", padx=20, pady=(15, 10))
 
-        ttk.Label(status_frame, text="Status:", font=("Segoe UI", 10, "bold")).pack(side="left")
-        self.status_indicator = StatusIndicator(status_frame)
-        self.status_indicator.pack(side="left", padx=(10, 0))
+        tk.Label(
+            header_frame,
+            text="▼ SYSTEM CONTROL",
+            font=("Consolas", 12, "bold"),
+            bg=COLORS['bg_card'],
+            fg=COLORS['accent_gold']
+        ).pack(anchor="w")
 
-        # Main control button
-        self.start_stop_button = ttk.Button(
-            control_card,
+        # Control content
+        control_content = tk.Frame(control_card, bg=COLORS['bg_card'])
+        control_content.pack(fill="x", padx=20, pady=(0, 20))
+
+        # Main control button with enhanced visibility
+        self.start_stop_button = tk.Button(
+            control_content,
             command=self.toggle_running,
-            style="Success.TButton"
+            font=("Consolas", 16, "bold"),
+            relief="raised",
+            bd=3,
+            cursor="hand2"
         )
-        self.start_stop_button.pack(fill="x", ipady=12)
-
-        # Mode toggle buttons
-        mode_frame = ttk.Frame(control_card)
-        mode_frame.pack(fill="x", pady=(15, 0))
-
-        ttk.Label(mode_frame, text="Processing Mode:", font=("Segoe UI", 10, "bold")).pack(anchor="w", pady=(0, 8))
-
-        mode_buttons = ttk.Frame(mode_frame)
-        mode_buttons.pack(fill="x")
-
-        self.remove_mode_btn = ttk.Button(
-            mode_buttons,
-            text="🗑 Remove Lines",
-            command=lambda: self.set_mode("remove"),
-            style="Danger.TButton"
-        )
-        self.remove_mode_btn.pack(side="left", fill="x", expand=True, padx=(0, 5))
-
-        self.keep_mode_btn = ttk.Button(
-            mode_buttons,
-            text="✓ Keep Lines",
-            command=lambda: self.set_mode("keep"),
-            style="Success.TButton"
-        )
-        self.keep_mode_btn.pack(side="left", fill="x", expand=True, padx=(5, 0))
+        self.start_stop_button.pack(fill="x", ipady=20, pady=10)
 
     def create_stats_section(self, parent):
         # Statistics card
-        stats_card = ttk.LabelFrame(parent, text="Statistics", padding=20)
-        stats_card.pack(fill="x", pady=(0, 20))
+        stats_card = tk.Frame(parent, bg=COLORS['bg_card'], relief="raised", bd=1)
+        stats_card.pack(fill="x", pady=(0, 20), padx=2)
 
-        stats_frame = ttk.Frame(stats_card)
-        stats_frame.pack(fill="x")
+        # Card header
+        header_frame = tk.Frame(stats_card, bg=COLORS['bg_card'])
+        header_frame.pack(fill="x", padx=20, pady=(15, 10))
 
-        # Processed count
-        self.processed_label = ttk.Label(
+        tk.Label(
+            header_frame,
+            text="▼ SYSTEM METRICS",
+            font=("Consolas", 12, "bold"),
+            bg=COLORS['bg_card'],
+            fg=COLORS['accent_gold']
+        ).pack(anchor="w")
+
+        # Stats content
+        stats_frame = tk.Frame(stats_card, bg=COLORS['bg_card'])
+        stats_frame.pack(fill="x", padx=20, pady=(0, 20))
+
+        self.processed_label = tk.Label(
             stats_frame,
-            text="Processed: 0 items",
-            font=("Segoe UI", 10)
+            text="PROCESSED: 0 ITEMS",
+            font=("Consolas", 11, "bold"),
+            bg=COLORS['bg_card'],
+            fg=COLORS['accent_blue']
         )
         self.processed_label.pack(side="left")
 
-        # Reset button
-        reset_btn = ttk.Button(
+        ttk.Button(
             stats_frame,
             text="Reset Counter",
             command=self.reset_stats,
-            style="Secondary.TButton"
-        )
-        reset_btn.pack(side="right")
+            style="Modern.TButton"
+        ).pack(side="right")
 
     def create_footer(self, parent):
-        footer_frame = ttk.Frame(parent)
-        footer_frame.pack(fill="x", side="bottom")
+        footer_frame = tk.Frame(parent, bg=COLORS['bg_primary'])
+        footer_frame.pack(fill="x", side="bottom", pady=(20, 0))
 
-        ttk.Label(
+        tk.Label(
             footer_frame,
-            text="ClipperTool Pro - Advanced Clipboard Processing",
-            font=("Segoe UI", 8),
-            foreground=COLORS['text_secondary']
+            text="◢ ClipperTool - Advanced Clipboard Processing System ◣",
+            font=("Consolas", 9),
+            bg=COLORS['bg_primary'],
+            fg=COLORS['text_secondary']
         ).pack()
 
     def create_new_config(self):
@@ -374,29 +610,61 @@ class ClipperTool:
         # Modern popup dialog
         popup = tk.Toplevel(self.root)
         popup.title("Create New Configuration")
-        popup.geometry("400x200")
+        popup.geometry("450x250")
         popup.resizable(False, False)
+        popup.configure(bg=COLORS['bg_primary'])
 
-        # Center the popup
         popup.transient(self.root)
         popup.grab_set()
 
-        main_frame = ttk.Frame(popup, padding=20)
-        main_frame.pack(fill="both", expand=True)
+        main_frame = tk.Frame(popup, bg=COLORS['bg_card'], relief="raised", bd=2)
+        main_frame.pack(fill="both", expand=True, padx=20, pady=20)
 
-        ttk.Label(main_frame, text="Configuration Name:", font=("Segoe UI", 12, "bold")).pack(anchor="w", pady=(0, 10))
+        tk.Label(
+            main_frame,
+            text="▼ NEW CONFIGURATION",
+            font=("Consolas", 14, "bold"),
+            bg=COLORS['bg_card'],
+            fg=COLORS['accent_gold']
+        ).pack(pady=(20, 20))
 
-        entry = ttk.Entry(main_frame, font=("Segoe UI", 11))
-        entry.pack(fill="x", pady=(0, 20), ipady=8)
+        tk.Label(
+            main_frame,
+            text="Configuration Name:",
+            font=("Consolas", 11),
+            bg=COLORS['bg_card'],
+            fg=COLORS['text_secondary']
+        ).pack(anchor="w", padx=20)
+
+        entry = tk.Entry(
+            main_frame,
+            font=("Consolas", 12),
+            bg=COLORS['bg_secondary'],
+            fg=COLORS['text_primary'],
+            insertbackground=COLORS['text_primary'],
+            relief="solid",
+            bd=1
+        )
+        entry.pack(fill="x", padx=20, pady=(5, 20), ipady=8)
         entry.focus()
 
-        button_frame = ttk.Frame(main_frame)
-        button_frame.pack(fill="x")
+        button_frame = tk.Frame(main_frame, bg=COLORS['bg_card'])
+        button_frame.pack(fill="x", padx=20, pady=(0, 20))
 
-        ttk.Button(button_frame, text="Cancel", command=popup.destroy).pack(side="right", padx=(10, 0))
-        ttk.Button(button_frame, text="Create", command=on_submit, style="Primary.TButton").pack(side="right")
+        ttk.Button(
+            button_frame,
+            text="Cancel",
+            command=popup.destroy,
+            style="Modern.TButton"
+        ).pack(side="right", padx=(10, 0))
 
-        # Enter key binding
+        ttk.Button(
+            button_frame,
+            text="Create",
+            command=on_submit,
+            style="Modern.TButton"
+        ).pack(side="right")
+
         entry.bind("<Return>", lambda e: on_submit())
 
     def open_selected_config(self):
@@ -460,44 +728,37 @@ class ClipperTool:
         self.update_stats()
 
     def update_stats(self):
-        self.processed_label.configure(text=f"Processed: {self.processed_count} items")
+        self.processed_label.configure(text=f"PROCESSED: {self.processed_count} ITEMS")
 
     def update_ui(self):
         mode = self.config.get("mode", "remove")
 
         # Update window title
-        status_text = "Running" if self.running else "Stopped"
-        self.root.title(f"ClipperTool Pro - {mode.title()} Mode ({status_text})")
-
-        # Update mode indicator
-        mode_text = "REMOVE MODE" if mode == "remove" else "KEEP MODE"
-        mode_color = COLORS['danger'] if mode == "remove" else COLORS['success']
-
-        self.mode_label.configure(text=mode_text)
-        self.mode_frame.configure(style="Card.TFrame")
+        status_text = "ONLINE" if self.running else "OFFLINE"
+        self.root.title(f"ClipperTool - {mode.upper()} MODE [{status_text}]")
 
         # Update status indicator
         self.status_indicator.set_status(self.running)
 
-        # Update main control button
+        # Update main control button with enhanced visibility
         if self.running:
             self.start_stop_button.configure(
-                text="⏹ Stop Processing",
-                style="Danger.TButton"
+                text="◼ STOP PROCESSING",
+                bg=COLORS['danger'],
+                fg=COLORS['text_primary'],
+                activebackground=COLORS['accent_red']
             )
         else:
             self.start_stop_button.configure(
-                text="▶ Start Processing",
-                style="Success.TButton"
+                text="▶ START PROCESSING",
+                bg=COLORS['success'],
+                fg=COLORS['bg_primary'],
+                activebackground=COLORS['accent_green']
             )
 
         # Update mode buttons
-        if mode == "remove":
-            self.remove_mode_btn.configure(style="Danger.TButton")
-            self.keep_mode_btn.configure(style="Secondary.TButton")
-        else:
-            self.remove_mode_btn.configure(style="Secondary.TButton")
-            self.keep_mode_btn.configure(style="Success.TButton")
+        self.remove_mode_btn.set_active(mode == "remove")
+        self.keep_mode_btn.set_active(mode == "keep")
 
     def toggle_running(self):
         self.running = not self.running
@@ -537,7 +798,7 @@ if __name__ == "__main__":
     app = tk.Tk()
 
     # Set window properties
-    app.title("ClipperTool Pro")
+    app.title("ClipperTool")
 
     # Try to set the icon
     try:
