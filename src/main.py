@@ -10,7 +10,7 @@ from utils.resources import resource_path
 from ui.main_window import ClipperToolUI
 
 
-def main():
+def ClipperTool():
     app = tk.Tk()
     app.title("ClipperTool")
 
@@ -30,4 +30,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    ClipperTool()

@@ -1,26 +1,22 @@
-import sys
 import os
+import sys
+
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src')))
 
-from main import ClipperTool, resource_path
+from src.main import ClipperTool
 
 import threading
 import time
 import pytest
-import tkinter as tk
+
 
 @pytest.fixture
 def app():
-    root = tk.Tk()
-    # Set icon may cause issues in some test environments, so we skip or mock it
-    try:
-        root.iconbitmap(resource_path("src/favicon.ico"))
-    except Exception:
-        pass
-    app = ClipperTool(root)
-    yield app
-    # Properly destroy the window after test
-    root.destroy()
+    app_instance = ClipperTool()  # or however you instantiate it
+    yield app_instance
+    # Cleanup if needed
+    if hasattr(app_instance, 'root'):
+        app_instance.root.destroy()
 
 def test_app_starts_and_stops(app):
     # Run the mainloop in a separate thread to avoid blocking test runner
