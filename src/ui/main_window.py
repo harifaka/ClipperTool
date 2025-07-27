@@ -136,7 +136,7 @@ class ClipperToolUI:
         self.style.map(
             "Modern.TButton",
             background=[('active', MODERN_COLORS['hover']),
-                       ('pressed', MODERN_COLORS['active'])]
+                        ('pressed', MODERN_COLORS['active'])]
         )
 
     def _setup_callbacks(self):
@@ -172,8 +172,6 @@ class ClipperToolUI:
         self._create_stats_section(self.main_container)
         self._create_footer(self.main_container)
 
-
-
     def _on_window_resize(self, event):
         """Handle window resize for responsive behavior"""
         if event.widget != self.root:
@@ -183,8 +181,7 @@ class ClipperToolUI:
         current_height = self.root.winfo_height()
 
         # Only update if size actually changed significantly
-        if (abs(current_width - self.last_width) > 10 or
-            abs(current_height - self.last_height) > 10):
+        if abs(current_width - self.last_width) > 10 or abs(current_height - self.last_height) > 10:
 
             self.last_width = current_width
             self.last_height = current_height
@@ -199,13 +196,10 @@ class ClipperToolUI:
         # Adjust padding based on window width
         if width < 700:
             padx = 15
-            internal_padx = 15
         elif width < 900:
             padx = 25
-            internal_padx = 20
         else:
             padx = 35
-            internal_padx = 25
 
         # Update main container padding - make it smaller
         self.main_container.configure(padx=padx, pady=15)

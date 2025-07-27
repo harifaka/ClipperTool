@@ -23,7 +23,7 @@ def main():
         print(f"Could not load icon: {e}")
 
     # Initialize the UI
-    clipper_ui = ClipperToolUI(app)
+    ClipperToolUI(app)
 
     # Start the application
     app.mainloop()

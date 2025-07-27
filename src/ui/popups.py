@@ -120,7 +120,7 @@ class CreateConfigDialog:
             return
 
         try:
-            filepath = self.config_manager.create_filter_file(filename)
+            self.config_manager.create_filter_file(filename)
             self.result = filename if not filename.endswith(".txt") else filename
             self.popup.destroy()
 
