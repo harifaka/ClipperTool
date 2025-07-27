@@ -19,13 +19,12 @@ No more annoying copy-paste clutter. Just clean, laser-focused clipboard content
 
 ## Features 💥
 
-- **🔍 Clipboard monitoring** — Runs quietly in the background, waiting for your clipboard to get messy.  
-- **⚙️ Configurable filters** — Edit simple text files to control exactly what you want removed or kept.  
-- **🔄 Multiple filter sets** — Switch between configs like changing hats.  
-- **✨ Modern GUI** — A sleek, sexy interface powered by ttkbootstrap (because ugly UI is so 2000s).  
-- **🎛️ Two modes** — Remove or keep lines, toggled with a single click.  
-- **🎨 Icon included** — Fancy favicon.ico because details matter.  
-- **📂 Portable configs** — Store your filter lists in `Documents/ClipperTool/Configs/`, so no surprises when updating.  
+- **🔍 Clipboard monitoring** — Runs quietly in the background, waiting for your clipboard to get messy.
+- **⚙️ Configurable filters** — Edit simple text files to control exactly what you want removed or kept.
+- **🔄 Multiple filter sets** — Switch between configs like changing hats.
+- **✨ Modern GUI** — A sleek, sexy interface powered by ttkbootstrap (because ugly UI is so 2000s).
+- **🎛️ Two modes** — Remove or keep lines, toggled with a single click.
+- **📂 Portable configs** — Store your filter lists in `Documents/ClipperTool/Configs/`, so no surprises when updating. 
 - **⚡ Lightweight and fast** — Like a ninja, but for your clipboard.
 
 ---
@@ -99,14 +98,31 @@ pyinstaller clipper_app.spec
 
 ```
 ClipperTool/
-├── clipper_app.py              # Application entry point
-├── requirements.txt            # Dependencies
-├── favicon.ico                 # App icon
-└── src/                        # Source modules
-    ├── config/                 # Configuration management
-    ├── core/                   # Clipboard processing logic
-    ├── ui/                     # User interface
-    └── utils/                  # Helper utilities
+├── .github/
+│ └── workflows/
+│ └── release.yml
+├── src/
+│ ├── config/
+│ │ ├── init.py
+│ │ └── config_manager.py
+│ ├── core/
+│ │ ├── init.py
+│ │ └── clipboard_processor.py
+│ ├── ui/
+│ │ ├── init.py
+│ │ ├── constants.py
+│ │ ├── main_window.py
+│ │ ├── popups.py
+│ │ └── widgets.py
+│ ├── utils/
+│ │ ├── init.py
+│ │ └── resources.py
+│ ├── favicon.ico
+│ └── main.py
+├── tests/
+├── .gitignore
+├── LICENSE
+└── README.md
 ```
 
 ---
@@ -139,17 +155,3 @@ ClipperTool is open source and ready for your magic touch!
 
 This project is open source and licensed under the **[Eclipse Public License 2.0](https://www.eclipse.org/legal/epl-2.0/)**.  
 Feel free to use, modify, and share it under the terms of the EPL.
----
-
-## Made With ❤️
-
-Created with Python, and a healthy obsession with clean clipboards.
-
----
-
-**Ready to clean your clipboard and boost your productivity like a boss?**  
-**ClipperTool is waiting.** ⚡
-
----
-
-*P.S. No clipboards were harmed in the making of this tool.*
