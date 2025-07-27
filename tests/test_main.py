@@ -14,6 +14,7 @@ def app():
     if hasattr(app_instance, 'root'):
         app_instance.root.destroy()
 
+@pytest.mark.skipif(os.getenv('CI') == 'true', reason="Skip GUI tests on CI")
 def test_app_starts_and_stops(app):
     # Initially, app should not be running
     assert app.running is False, "App should start in stopped state"
