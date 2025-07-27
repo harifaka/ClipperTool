@@ -1,16 +1,13 @@
 import tkinter as tk
 import os
-from utils.resources import resource_path
-from ui.main_window import ClipperToolUI
+from .utils.resources import resource_path
+from .ui.main_window import ClipperToolUI
 
 
 class ClipperTool:
     def __init__(self):
         self.root = tk.Tk()
         self.root.title("ClipperTool")
-        self.running = False
-
-        # Try to set the icon
         try:
             icon_path = resource_path("favicon.ico")
             if os.path.exists(icon_path):
@@ -18,10 +15,15 @@ class ClipperTool:
         except Exception as e:
             print(f"Could not load icon: {e}")
 
-        # Initialize UI
         self.ui = ClipperToolUI(self.root)
         self.file_var = self.ui.file_var
-        self.toggle_running = self.ui.toggle_running
+
+    @property
+    def running(self):
+        return self.ui.clipboard_processor.running
+
+    def toggle_running(self):
+        self.ui._toggle_processing()
 
     def run(self):
         self.root.mainloop()

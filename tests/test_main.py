@@ -1,46 +1,41 @@
-import os
+import time
+import pytest
 import sys
+import os
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from src.main import ClipperTool
 
-import threading
-import time
-import pytest
-
-
 @pytest.fixture
 def app():
-    app_instance = ClipperTool()  # or however you instantiate it
+    app_instance = ClipperTool()
     yield app_instance
-    # Cleanup if needed
     if hasattr(app_instance, 'root'):
         app_instance.root.destroy()
 
 def test_app_starts_and_stops(app):
-    # Run the mainloop in a separate thread to avoid blocking test runner
-    def run_app():
-        app.root.after(2000, app.root.quit)  # quit after 2 seconds
-        app.root.mainloop()
+    # Initially, app should not be running
+    assert app.running is False, "App should start in stopped state"
 
-    t = threading.Thread(target=run_app)
-    t.start()
+    # Check initial file_var value (assuming it's a StringVar)
+    initial_file_var = app.file_var.get()
+    assert initial_file_var is not None, "file_var should be initialized"
 
-    # Check initial state
-    assert not app.running
-    assert app.file_var.get() is not None  # Should have a selected file or empty string
+    # Schedule app to quit mainloop after 2 seconds
+    app.root.after(2000, app.root.quit)
 
-    # Start the app
+    # Start the app (toggle running state)
     app.toggle_running()
-    assert app.running is True
+    assert app.running is True, "App should be running after toggle"
 
-    # Wait a bit to let clipboard loop run (optional)
-    time.sleep(1)
+    # Run mainloop on the main thread (this will block for ~2 seconds)
+    app.root.mainloop()
 
-    # Stop the app
+    # After mainloop exits, stop the app (toggle running state off)
     app.toggle_running()
-    assert app.running is False
+    assert app.running is False, "App should be stopped after toggle"
 
-    # Wait for GUI to close
-    t.join(timeout=3)
+    # Optionally check clipboard monitor flag if exists
+    if hasattr(app, 'clipboard_monitor_active'):
+        assert app.clipboard_monitor_active is False
