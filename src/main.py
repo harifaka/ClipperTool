@@ -1,7 +1,7 @@
 import tkinter as tk
 import os
-from .utils.resources import resource_path
-from .ui.main_window import ClipperToolUI
+from src.utils.resources import resource_path
+from src.ui.main_window import ClipperToolUI
 
 
 class ClipperTool:
