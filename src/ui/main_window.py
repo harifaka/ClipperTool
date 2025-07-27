@@ -1,23 +1,24 @@
 """
-Main window UI for ClipperTool
+Main window UI for ClipperTool - Modernized Version
 """
 
+import os
+import platform
+import subprocess
 import tkinter as tk
 from tkinter import ttk
-import ttkbootstrap as tb
-import subprocess
-import platform
-import os
 
-from src.ui.constants import COLORS, FONTS, WINDOW_CONFIG
-from src.ui.widgets import GoldenButton, StatusIndicator
-from src.ui.popups import CreateConfigDialog, show_error_message, show_warning_message
+import ttkbootstrap as tb
+
 from src.config.config_manager import ConfigManager
 from src.core.clipboard_processor import ClipboardProcessor
+from src.ui.popups import CreateConfigDialog, show_error_message, show_warning_message
+from src.ui.widgets import StatusIndicator
+from src.ui.constants import MODERN_COLORS, WINDOW_CONFIG
 
 
 class ClipperToolUI:
-    """Main application UI class"""
+    """Main application UI class - Modernized"""
 
     def __init__(self, root):
         self.root = root
@@ -35,62 +36,107 @@ class ClipperToolUI:
         self._load_filter_files()
         self._update_ui()
 
+        # Bind resize event for responsive behavior
+        self.root.bind('<Configure>', self._on_window_resize)
+
+        # Track window state for responsive adjustments
+        self.last_width = 0
+        self.last_height = 0
+
     def _setup_window(self):
-        """Configure the main window"""
+        """Configure the main window with better sizing"""
         self.root.geometry(WINDOW_CONFIG['geometry'])
         self.root.minsize(WINDOW_CONFIG['min_width'], WINDOW_CONFIG['min_height'])
-        self.root.configure(bg=COLORS['bg_primary'])
+        self.root.configure(bg=MODERN_COLORS['bg_primary'])
+
+        # Set window icon and title
+        self.root.title("ClipperTool - Advanced Clipboard Processing")
+
+        # Make window resizable and responsive
+        self.root.grid_rowconfigure(0, weight=1)
+        self.root.grid_columnconfigure(0, weight=1)
 
     def _setup_styles(self):
-        """Configure UI styles"""
-        # Initialize with dark theme
-        self.style = tb.Style("cyborg")
+        """Configure modern UI styles"""
+        # Initialize with dark theme but customize
+        self.style = tb.Style("darkly")
 
-        # Configure custom styles
-        self.style.configure("Card.TFrame", background=COLORS['bg_card'])
-        self.style.configure("Main.TFrame", background=COLORS['bg_primary'])
+        # Override with modern colors
+        self.style.configure(
+            "Modern.TFrame",
+            background=MODERN_COLORS['bg_secondary'],
+            relief="flat",
+            borderwidth=1,
+            bordercolor=MODERN_COLORS['border']
+        )
+
+        self.style.configure(
+            "Card.TFrame",
+            background=MODERN_COLORS['bg_secondary'],
+            relief="flat",
+            borderwidth=1,
+            bordercolor=MODERN_COLORS['border']
+        )
 
         # Modern labels
         self.style.configure(
             "Title.TLabel",
-            background=COLORS['bg_primary'],
-            foreground=COLORS['text_primary'],
-            font=FONTS['title']
-        )
-
-        self.style.configure(
-            "Subtitle.TLabel",
-            background=COLORS['bg_card'],
-            foreground=COLORS['text_secondary'],
-            font=FONTS['body']
+            background=MODERN_COLORS['bg_primary'],
+            foreground=MODERN_COLORS['accent_blue'],
+            font=('Segoe UI', 18, 'bold')
         )
 
         self.style.configure(
             "Header.TLabel",
-            background=COLORS['bg_card'],
-            foreground=COLORS['accent_gold'],
-            font=FONTS['header']
+            background=MODERN_COLORS['bg_secondary'],
+            foreground=MODERN_COLORS['accent_orange'],
+            font=('Segoe UI', 11, 'bold')
+        )
+
+        self.style.configure(
+            "Body.TLabel",
+            background=MODERN_COLORS['bg_secondary'],
+            foreground=MODERN_COLORS['text_primary'],
+            font=('Segoe UI', 10)
+        )
+
+        self.style.configure(
+            "Muted.TLabel",
+            background=MODERN_COLORS['bg_secondary'],
+            foreground=MODERN_COLORS['text_muted'],
+            font=('Segoe UI', 9)
         )
 
         # Modern combobox
         self.style.configure(
             "Modern.TCombobox",
-            fieldbackground=COLORS['bg_secondary'],
-            background=COLORS['bg_secondary'],
-            foreground=COLORS['text_primary'],
+            fieldbackground=MODERN_COLORS['bg_input'],
+            background=MODERN_COLORS['bg_input'],
+            foreground=MODERN_COLORS['text_primary'],
             borderwidth=1,
-            relief="solid",
-            font=FONTS['body']
+            bordercolor=MODERN_COLORS['border'],
+            focuscolor=MODERN_COLORS['border_focus'],
+            relief="flat",
+            font=('Segoe UI', 10)
         )
 
         # Modern buttons
         self.style.configure(
             "Modern.TButton",
-            background=COLORS['bg_secondary'],
-            foreground=COLORS['text_primary'],
+            background=MODERN_COLORS['bg_tertiary'],
+            foreground=MODERN_COLORS['text_primary'],
             borderwidth=1,
+            bordercolor=MODERN_COLORS['border'],
             focuscolor="none",
-            font=FONTS['button']
+            relief="flat",
+            font=('Segoe UI', 9),
+            padding=(12, 8)
+        )
+
+        self.style.map(
+            "Modern.TButton",
+            background=[('active', MODERN_COLORS['hover']),
+                       ('pressed', MODERN_COLORS['active'])]
         )
 
     def _setup_callbacks(self):
@@ -101,229 +147,361 @@ class ClipperToolUI:
         )
 
     def _create_ui(self):
-        """Create the main UI"""
-        # Main container
-        main_container = tk.Frame(self.root, bg=COLORS['bg_primary'])
-        main_container.pack(fill="both", expand=True, padx=25, pady=25)
+        """Create the modern responsive UI that fits in window"""
+        # Main container - no scrolling, everything should fit
+        self.main_container = tk.Frame(
+            self.root,
+            bg=MODERN_COLORS['bg_primary']
+        )
+        self.main_container.pack(fill="both", expand=True, padx=20, pady=15)
 
-        # Create sections
-        self._create_header(main_container)
-        self._create_config_section(main_container)
-        self._create_mode_section(main_container)
-        self._create_control_section(main_container)
-        self._create_stats_section(main_container)
-        self._create_footer(main_container)
+        # Configure main container grid for proper spacing
+        self.main_container.grid_rowconfigure(1, weight=0)  # Header - fixed
+        self.main_container.grid_rowconfigure(2, weight=1)  # Config - flexible
+        self.main_container.grid_rowconfigure(3, weight=0)  # Mode - compact
+        self.main_container.grid_rowconfigure(4, weight=0)  # Control - compact
+        self.main_container.grid_rowconfigure(5, weight=0)  # Stats - compact
+        self.main_container.grid_rowconfigure(6, weight=0)  # Footer - minimal
+        self.main_container.grid_columnconfigure(0, weight=1)
 
-    def _create_header(self, parent):
-        """Create header section"""
-        header_frame = tk.Frame(parent, bg=COLORS['bg_primary'])
-        header_frame.pack(fill="x", pady=(0, 30))
+        # Create sections with grid layout for better control
+        self._create_header(self.main_container)
+        self._create_config_section(self.main_container)
+        self._create_mode_section(self.main_container)
+        self._create_control_section(self.main_container)
+        self._create_stats_section(self.main_container)
+        self._create_footer(self.main_container)
 
-        # Title
+
+
+    def _on_window_resize(self, event):
+        """Handle window resize for responsive behavior"""
+        if event.widget != self.root:
+            return
+
+        current_width = self.root.winfo_width()
+        current_height = self.root.winfo_height()
+
+        # Only update if size actually changed significantly
+        if (abs(current_width - self.last_width) > 10 or
+            abs(current_height - self.last_height) > 10):
+
+            self.last_width = current_width
+            self.last_height = current_height
+
+            # Trigger responsive layout update
+            self.root.after(50, self._update_responsive_layout)
+
+    def _update_responsive_layout(self):
+        """Update layout based on current window size"""
+        width = self.root.winfo_width()
+
+        # Adjust padding based on window width
+        if width < 700:
+            padx = 15
+            internal_padx = 15
+        elif width < 900:
+            padx = 25
+            internal_padx = 20
+        else:
+            padx = 35
+            internal_padx = 25
+
+        # Update main container padding - make it smaller
+        self.main_container.configure(padx=padx, pady=15)
+
+    def _create_modern_card(self, parent, title, icon="▼", row=None):
+        """Create a modern card container with proper grid placement"""
+        # Card container with minimal padding
+        card_container = tk.Frame(parent, bg=MODERN_COLORS['bg_primary'])
+        if row is not None:
+            card_container.grid(row=row, column=0, sticky="ew", pady=(0, 8), padx=2)
+        else:
+            card_container.pack(fill="x", pady=(0, 8), padx=2)
+
+        # Main card
+        card = tk.Frame(
+            card_container,
+            bg=MODERN_COLORS['bg_secondary'],
+            relief="flat",
+            bd=0
+        )
+        card.pack(fill="both", expand=True)
+
+        # Add subtle border
+        border_frame = tk.Frame(
+            card,
+            bg=MODERN_COLORS['border'],
+            height=1
+        )
+        border_frame.pack(fill="x", side="top")
+
+        # Header with icon and title - more compact
+        header_frame = tk.Frame(card, bg=MODERN_COLORS['bg_secondary'])
+        header_frame.pack(fill="x", padx=15, pady=(12, 8))
+
         title_label = tk.Label(
             header_frame,
-            text="◢ CLIPPERTOOL ◣",
-            font=FONTS['title'],
-            bg=COLORS['bg_primary'],
-            fg=COLORS['accent_gold']
+            text=f"{icon} {title}",
+            font=('Segoe UI', 10, 'bold'),  # Smaller font
+            bg=MODERN_COLORS['bg_secondary'],
+            fg=MODERN_COLORS['accent_orange']
         )
-        title_label.pack(side="left")
+        title_label.pack(anchor="w")
 
-        # Status indicator
-        self.status_indicator = StatusIndicator(header_frame)
-        self.status_indicator.pack(side="right")
+        # Content frame - reduced padding
+        content_frame = tk.Frame(card, bg=MODERN_COLORS['bg_secondary'])
+        content_frame.pack(fill="both", expand=True, padx=15, pady=(0, 15))
+
+        return card, content_frame
+
+    def _create_header(self, parent):
+        """Create compact modern header section"""
+        header_frame = tk.Frame(parent, bg=MODERN_COLORS['bg_primary'])
+        header_frame.grid(row=0, column=0, sticky="ew", pady=(0, 15))
+
+        # Configure grid
+        header_frame.grid_columnconfigure(0, weight=1)
+
+        # Left side - Title
+        left_frame = tk.Frame(header_frame, bg=MODERN_COLORS['bg_primary'])
+        left_frame.grid(row=0, column=0, sticky="w")
+
+        title_label = tk.Label(
+            left_frame,
+            text="⚡ CLIPPERTOOL",
+            font=('Segoe UI', 16, 'bold'),  # Smaller title
+            bg=MODERN_COLORS['bg_primary'],
+            fg=MODERN_COLORS['accent_blue']
+        )
+        title_label.pack(anchor="w")
+
+        subtitle_label = tk.Label(
+            left_frame,
+            text="Advanced Clipboard Processing System",
+            font=('Segoe UI', 8),  # Smaller subtitle
+            bg=MODERN_COLORS['bg_primary'],
+            fg=MODERN_COLORS['text_muted']
+        )
+        subtitle_label.pack(anchor="w", pady=(1, 0))
+
+        # Right side - Status
+        right_frame = tk.Frame(header_frame, bg=MODERN_COLORS['bg_primary'])
+        right_frame.grid(row=0, column=1, sticky="e")
+
+        self.status_indicator = StatusIndicator(right_frame)
+        self.status_indicator.pack()
 
     def _create_config_section(self, parent):
-        """Create configuration section"""
-        config_card = tk.Frame(parent, bg=COLORS['bg_card'], relief="raised", bd=1)
-        config_card.pack(fill="x", pady=(0, 20), padx=2)
+        """Create modern configuration section"""
+        card, content = self._create_modern_card(parent, "CONFIGURATION", "⚙", row=1)
 
-        # Header
-        header_frame = tk.Frame(config_card, bg=COLORS['bg_card'])
-        header_frame.pack(fill="x", padx=20, pady=(15, 10))
-
+        # Configuration label - more compact
         tk.Label(
-            header_frame,
-            text="▼ CONFIGURATION MATRIX",
-            font=FONTS['header'],
-            bg=COLORS['bg_card'],
-            fg=COLORS['accent_gold']
-        ).pack(anchor="w")
+            content,
+            text="Filter Configuration File:",
+            font=('Segoe UI', 9),
+            bg=MODERN_COLORS['bg_secondary'],
+            fg=MODERN_COLORS['text_secondary']
+        ).pack(anchor="w", pady=(0, 6))
 
-        # Content
-        content_frame = tk.Frame(config_card, bg=COLORS['bg_card'])
-        content_frame.pack(fill="x", padx=20, pady=(0, 20))
-
-        tk.Label(
-            content_frame,
-            text="Select Filter Configuration:",
-            font=FONTS['button'],
-            bg=COLORS['bg_card'],
-            fg=COLORS['text_secondary']
-        ).pack(anchor="w", pady=(0, 8))
+        # Dropdown container for better styling
+        dropdown_container = tk.Frame(content, bg=MODERN_COLORS['bg_secondary'])
+        dropdown_container.pack(fill="x", pady=(0, 12))
 
         self.file_var = tk.StringVar()
         self.file_dropdown = ttk.Combobox(
-            content_frame,
+            dropdown_container,
             textvariable=self.file_var,
             state="readonly",
-            style="Modern.TCombobox"
+            style="Modern.TCombobox",
+            font=('Segoe UI', 9)  # Smaller font
         )
-        self.file_dropdown.pack(fill="x", pady=(0, 15), ipady=8)
+        self.file_dropdown.pack(fill="x", ipady=6)  # Less padding
         self.file_dropdown.bind("<<ComboboxSelected>>", lambda e: self._save_and_update())
 
-        # Action buttons
-        self._create_config_buttons(content_frame)
+        # Action buttons in responsive grid
+        self._create_config_buttons(content)
 
     def _create_config_buttons(self, parent):
-        """Create configuration action buttons"""
-        button_container = tk.Frame(parent, bg=COLORS['bg_card'])
+        """Create responsive configuration buttons"""
+        button_container = tk.Frame(parent, bg=MODERN_COLORS['bg_secondary'])
         button_container.pack(fill="x")
 
-        ttk.Button(
+        # Configure grid weights for responsiveness
+        button_container.grid_columnconfigure(0, weight=1)
+        button_container.grid_columnconfigure(1, weight=1)
+        button_container.grid_columnconfigure(2, weight=1)
+
+        # Modern styled buttons
+        new_btn = ttk.Button(
             button_container,
-            text="+ New Config",
+            text="➕ New Config",
             command=self._create_new_config,
             style="Modern.TButton"
-        ).pack(side="left", padx=(0, 10), fill="x", expand=True)
+        )
+        new_btn.grid(row=0, column=0, padx=(0, 8), sticky="ew")
 
-        ttk.Button(
+        edit_btn = ttk.Button(
             button_container,
-            text="⚙ Edit Config",
+            text="✏ Edit Config",
             command=self._open_selected_config,
             style="Modern.TButton"
-        ).pack(side="left", padx=(5, 10), fill="x", expand=True)
+        )
+        edit_btn.grid(row=0, column=1, padx=4, sticky="ew")
 
-        ttk.Button(
+        folder_btn = ttk.Button(
             button_container,
             text="📁 Open Folder",
             command=self._open_config_folder,
             style="Modern.TButton"
-        ).pack(side="left", padx=(5, 0), fill="x", expand=True)
+        )
+        folder_btn.grid(row=0, column=2, padx=(8, 0), sticky="ew")
 
     def _create_mode_section(self, parent):
-        """Create mode selection section"""
-        mode_card = tk.Frame(parent, bg=COLORS['bg_card'], relief="raised", bd=1)
-        mode_card.pack(fill="x", pady=(0, 20), padx=2)
+        """Create compact mode selection section"""
+        card, content = self._create_modern_card(parent, "PROCESSING MODE", "🧩", row=2)
 
-        # Header
-        header_frame = tk.Frame(mode_card, bg=COLORS['bg_card'])
-        header_frame.pack(fill="x", padx=20, pady=(15, 10))
-
+        # Description - more compact
         tk.Label(
-            header_frame,
-            text="▼ PROCESSING MODE",
-            font=FONTS['header'],
-            bg=COLORS['bg_card'],
-            fg=COLORS['accent_gold']
-        ).pack(anchor="w")
+            content,
+            text="Select how the filter should process clipboard content:",
+            font=('Segoe UI', 9),
+            bg=MODERN_COLORS['bg_secondary'],
+            fg=MODERN_COLORS['text_secondary']
+        ).pack(anchor="w", pady=(0, 10))
 
-        # Mode buttons
-        mode_frame = tk.Frame(mode_card, bg=COLORS['bg_card'])
-        mode_frame.pack(fill="x", padx=20, pady=(0, 20))
+        # Mode buttons container
+        mode_container = tk.Frame(content, bg=MODERN_COLORS['bg_secondary'])
+        mode_container.pack(fill="x")
+        mode_container.grid_columnconfigure(0, weight=1)
+        mode_container.grid_columnconfigure(1, weight=1)
 
-        button_frame = tk.Frame(mode_frame, bg=COLORS['bg_card'])
-        button_frame.pack(fill="x")
-
-        self.remove_mode_btn = GoldenButton(
-            button_frame,
-            text="REMOVE LINES",
-            command=lambda: self._set_mode("remove"),
-            icon="⊗"
+        self.remove_mode_btn = self._create_mode_button(
+            mode_container,
+            "⚔️ REMOVE LINES",
+            "Remove matching lines from clipboard",
+            lambda: self._set_mode("remove")
         )
-        self.remove_mode_btn.pack(side="left", fill="both", expand=True, padx=(0, 10))
+        self.remove_mode_btn.grid(row=0, column=0, padx=(0, 6), sticky="ew")
 
-        self.keep_mode_btn = GoldenButton(
-            button_frame,
-            text="KEEP LINES",
-            command=lambda: self._set_mode("keep"),
-            icon="⊕"
+        self.keep_mode_btn = self._create_mode_button(
+            mode_container,
+            "📌 KEEP LINES",
+            "Keep only matching lines in clipboard",
+            lambda: self._set_mode("keep")
         )
-        self.keep_mode_btn.pack(side="left", fill="both", expand=True, padx=(10, 0))
+        self.keep_mode_btn.grid(row=0, column=1, padx=(6, 0), sticky="ew")
+
+    def _create_mode_button(self, parent, text, tooltip, command):
+        """Create a compact mode selection button"""
+        btn_frame = tk.Frame(parent, bg=MODERN_COLORS['bg_tertiary'], relief="flat", bd=1)
+
+        btn = tk.Button(
+            btn_frame,
+            text=text,
+            command=command,
+            font=('Segoe UI', 9, 'bold'),  # Smaller font
+            bg=MODERN_COLORS['bg_tertiary'],
+            fg=MODERN_COLORS['text_primary'],
+            activebackground=MODERN_COLORS['hover'],
+            activeforeground=MODERN_COLORS['text_primary'],
+            relief="flat",
+            bd=0,
+            cursor="hand2",
+            pady=10  # Less padding
+        )
+        btn.pack(fill="both", expand=True)
+
+        return btn_frame
 
     def _create_control_section(self, parent):
-        """Create control section"""
-        control_card = tk.Frame(parent, bg=COLORS['bg_card'], relief="raised", bd=1)
-        control_card.pack(fill="x", pady=(0, 20), padx=2)
+        """Create compact control section"""
+        card, content = self._create_modern_card(parent, "SYSTEM CONTROL", "🎮", row=3)
 
-        # Header
-        header_frame = tk.Frame(control_card, bg=COLORS['bg_card'])
-        header_frame.pack(fill="x", padx=20, pady=(15, 10))
-
-        tk.Label(
-            header_frame,
-            text="▼ SYSTEM CONTROL",
-            font=FONTS['header'],
-            bg=COLORS['bg_card'],
-            fg=COLORS['accent_gold']
-        ).pack(anchor="w")
-
-        # Control content
-        control_content = tk.Frame(control_card, bg=COLORS['bg_card'])
-        control_content.pack(fill="x", padx=20, pady=(0, 20))
-
-        # Main control button
-        self.start_stop_button = tk.Button(
-            control_content,
-            command=self._toggle_processing,
-            font=FONTS['button_main'],
-            relief="raised",
-            bd=3,
-            cursor="hand2"
+        # Status display - more compact
+        self.control_status = tk.Label(
+            content,
+            text="System is ready. Click below to start processing.",
+            font=('Segoe UI', 9),
+            bg=MODERN_COLORS['bg_secondary'],
+            fg=MODERN_COLORS['text_secondary']
         )
-        self.start_stop_button.pack(fill="x", ipady=20, pady=10)
+        self.control_status.pack(anchor="w", pady=(0, 10))
+
+        # Main control button - smaller
+        self.start_stop_button = tk.Button(
+            content,
+            command=self._toggle_processing,
+            font=('Segoe UI', 12, 'bold'),  # Smaller font
+            relief="flat",
+            bd=0,
+            cursor="hand2",
+            height=1  # Reduced height
+        )
+        self.start_stop_button.pack(fill="x", pady=3)
 
     def _create_stats_section(self, parent):
-        """Create statistics section"""
-        stats_card = tk.Frame(parent, bg=COLORS['bg_card'], relief="raised", bd=1)
-        stats_card.pack(fill="x", pady=(0, 20), padx=2)
+        """Create compact statistics section"""
+        card, content = self._create_modern_card(parent, "SYSTEM METRICS", "📊", row=4)
 
-        # Header
-        header_frame = tk.Frame(stats_card, bg=COLORS['bg_card'])
-        header_frame.pack(fill="x", padx=20, pady=(15, 10))
+        # Stats container
+        stats_container = tk.Frame(content, bg=MODERN_COLORS['bg_secondary'])
+        stats_container.pack(fill="x")
 
-        tk.Label(
-            header_frame,
-            text="▼ SYSTEM METRICS",
-            font=FONTS['header'],
-            bg=COLORS['bg_card'],
-            fg=COLORS['accent_gold']
-        ).pack(anchor="w")
-
-        # Stats content
-        stats_frame = tk.Frame(stats_card, bg=COLORS['bg_card'])
-        stats_frame.pack(fill="x", padx=20, pady=(0, 20))
+        # Left side - metrics
+        left_stats = tk.Frame(stats_container, bg=MODERN_COLORS['bg_secondary'])
+        left_stats.pack(side="left", fill="both", expand=True)
 
         self.processed_label = tk.Label(
-            stats_frame,
-            text="PROCESSED: 0 ITEMS",
-            font=FONTS['body'] + ("bold",),
-            bg=COLORS['bg_card'],
-            fg=COLORS['accent_blue']
+            left_stats,
+            text="Processed Items: 0",
+            font=('Segoe UI', 10, 'bold'),  # Smaller font
+            bg=MODERN_COLORS['bg_secondary'],
+            fg=MODERN_COLORS['accent_blue']
         )
-        self.processed_label.pack(side="left")
+        self.processed_label.pack(anchor="w")
 
-        ttk.Button(
-            stats_frame,
-            text="Reset Counter",
+        self.status_text_label = tk.Label(
+            left_stats,
+            text="Status: Idle",
+            font=('Segoe UI', 8),  # Smaller font
+            bg=MODERN_COLORS['bg_secondary'],
+            fg=MODERN_COLORS['text_muted']
+        )
+        self.status_text_label.pack(anchor="w", pady=(2, 0))
+
+        # Right side - reset button
+        reset_btn = ttk.Button(
+            stats_container,
+            text="🔄 Reset",
             command=self._reset_stats,
             style="Modern.TButton"
-        ).pack(side="right")
+        )
+        reset_btn.pack(side="right")
 
     def _create_footer(self, parent):
-        """Create footer section"""
-        footer_frame = tk.Frame(parent, bg=COLORS['bg_primary'])
-        footer_frame.pack(fill="x", side="bottom", pady=(20, 0))
+        """Create minimal footer section"""
+        footer_frame = tk.Frame(parent, bg=MODERN_COLORS['bg_primary'])
+        footer_frame.grid(row=5, column=0, sticky="ew", pady=(15, 5))
+
+        # Separator line
+        separator = tk.Frame(
+            footer_frame,
+            bg=MODERN_COLORS['border'],
+            height=1
+        )
+        separator.pack(fill="x", pady=(0, 8))
 
         tk.Label(
             footer_frame,
-            text="◢ ClipperTool - Advanced Clipboard Processing System ◣",
-            font=FONTS['footer'],
-            bg=COLORS['bg_primary'],
-            fg=COLORS['text_secondary']
+            text="ClipperTool • Advanced Clipboard Processing System",
+            font=('Segoe UI', 6),
+            bg=MODERN_COLORS['bg_primary'],
+            fg=MODERN_COLORS['text_muted']
         ).pack()
 
-    # Event handlers
+    # Event handlers (keeping existing functionality)
     def _create_new_config(self):
         """Handle create new config button"""
         dialog = CreateConfigDialog(
@@ -377,7 +555,7 @@ class ClipperToolUI:
             show_error_message("Error", f"Could not open folder:\n{e}")
 
     def _set_mode(self, mode):
-        """Set processing mode"""
+        """Set processing mode with visual feedback"""
         self.config["mode"] = mode
         self._save_and_update()
 
@@ -421,44 +599,64 @@ class ClipperToolUI:
         self._update_ui()
 
     def _update_ui(self):
-        """Update UI elements"""
+        """Update UI elements with modern styling"""
         mode = self.config.get("mode", "remove")
         running = self.clipboard_processor.running
 
         # Update window title
-        status_text = "ONLINE" if running else "OFFLINE"
-        self.root.title(f"ClipperTool - {mode.upper()} MODE [{status_text}]")
+        status_text = "ACTIVE" if running else "IDLE"
+        self.root.title(f"ClipperTool • {mode.upper()} MODE • {status_text}")
 
         # Update status indicator
         self.status_indicator.set_status(running)
 
+        # Update control status text
+        if running:
+            self.control_status.configure(
+                text="🟢 System is actively monitoring clipboard...",
+                fg=MODERN_COLORS['accent_green']
+            )
+        else:
+            self.control_status.configure(
+                text="📡 System is idle. Click below to start processing.",
+                fg=MODERN_COLORS['text_secondary']
+            )
+
         # Update main control button
         if running:
             self.start_stop_button.configure(
-                text="◼ STOP PROCESSING",
-                bg=COLORS['danger'],
-                fg=COLORS['text_primary'],
-                activebackground=COLORS['accent_red']
+                text="⏹ STOP PROCESSING",
+                bg=MODERN_COLORS['accent_red'],
+                fg='white',
+                activebackground=MODERN_COLORS['accent_red']
             )
         else:
             self.start_stop_button.configure(
                 text="▶ START PROCESSING",
-                bg=COLORS['success'],
-                fg=COLORS['bg_primary'],
-                activebackground=COLORS['accent_green']
+                bg=MODERN_COLORS['accent_green'],
+                fg='white',
+                activebackground=MODERN_COLORS['accent_green']
             )
 
         # Update mode buttons
-        self.remove_mode_btn.set_active(mode == "remove")
-        self.keep_mode_btn.set_active(mode == "keep")
+        if mode == "remove":
+            self.remove_mode_btn.configure(bg=MODERN_COLORS['accent_blue'])
+            self.keep_mode_btn.configure(bg=MODERN_COLORS['bg_tertiary'])
+        else:
+            self.remove_mode_btn.configure(bg=MODERN_COLORS['bg_tertiary'])
+            self.keep_mode_btn.configure(bg=MODERN_COLORS['accent_blue'])
 
         # Update stats
         self._update_stats()
 
+        # Update status text
+        status_label_text = "Active" if running else "Idle"
+        self.status_text_label.configure(text=f"Status: {status_label_text}")
+
     def _update_stats(self):
         """Update statistics display"""
         count = self.clipboard_processor.get_processed_count()
-        self.processed_label.configure(text=f"PROCESSED: {count} ITEMS")
+        self.processed_label.configure(text=f"Processed Items: {count}")
 
     # Callbacks for clipboard processor
     def _on_clipboard_processed(self, count):

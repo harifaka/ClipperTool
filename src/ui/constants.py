@@ -22,18 +22,42 @@ COLORS = {
 
 # Window configuration
 WINDOW_CONFIG = {
-    'geometry': '800x650',
+    'geometry': '800x800',
     'min_width': 700,
-    'min_height': 600
+    'min_height': 800
 }
 
-# Font configuration
+MODERN_COLORS = {
+    'bg_primary': '#2B2B2B',
+    'bg_secondary': '#3C3F41',
+    'bg_tertiary': '#4C5052',
+    'bg_input': '#45494A',
+    'bg_card': '#3C3F44',
+    'border': '#5C6164',
+    'success': '#00ff88',
+    'border_focus': '#6897BB',
+    'text_primary': '#BBBBBB',
+    'text_secondary': '#9E9E9E',
+    'text_muted': '#808080',
+    'accent_blue': '#6897BB',
+    'accent_green': '#629755',
+    'accent_orange': '#CC7832',
+    'accent_red': '#BC3F3C',
+    'accent_purple': '#9876AA',
+    'hover': '#404040',
+    'active': '#4A4A4A',
+}
+
 FONTS = {
-    'title': ('Consolas', 24, 'bold'),
-    'header': ('Consolas', 12, 'bold'),
-    'body': ('Consolas', 11),
-    'button': ('Consolas', 10),
-    'button_large': ('Consolas', 14, 'bold'),
-    'button_main': ('Consolas', 16, 'bold'),
-    'footer': ('Consolas', 9)
+    'title': ('Segoe UI', 18, 'bold'),
+    'header': ('Segoe UI', 11, 'bold'),
+    'body': ('Segoe UI', 10),
+    'muted': ('Segoe UI', 9),
+    'combobox': ('Segoe UI', 10),
+    'button': ('Segoe UI', 9),
+    'start_stop': ('Segoe UI', 12, 'bold'),
+    'subtitle': ('Segoe UI', 8),
+    'footer': ('Segoe UI', 7),
+    'stats': ('Segoe UI', 10, 'bold'),
+    'stats_muted': ('Segoe UI', 8),
 }
