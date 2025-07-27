@@ -1,9 +1,8 @@
-# src/main.py
-
 import tkinter as tk
 import os
 from utils.resources import resource_path
 from ui.main_window import ClipperToolUI
+
 
 class ClipperTool:
     def __init__(self):
@@ -26,6 +25,7 @@ class ClipperTool:
 
     def run(self):
         self.root.mainloop()
+
 
 if __name__ == "__main__":
     app = ClipperTool()
