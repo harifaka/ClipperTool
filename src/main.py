@@ -184,7 +184,7 @@ class GoldenButton(tk.Frame):
 
         points = [
             10, 5, width - 10, 5, width - 5, 10, width - 5, height - 10,
-                   width - 10, height - 5, 10, height - 5, 5, height - 10, 5, 10
+            width - 10, height - 5, 10, height - 5, 5, height - 10, 5, 10
         ]
 
         self.canvas.create_polygon(points, fill=bg_color, outline=frame_color, width=2)
@@ -594,7 +594,7 @@ class ClipperTool:
                 filename += ".txt"
             filepath = os.path.join(FILTERS_FOLDER, filename)
             if os.path.exists(filepath):
-                tk.messagebox.showerror("Error", "File already exists!")
+                messagebox.showerror("Error", "File already exists!")
                 return
             try:
                 with open(filepath, "w") as f:
@@ -603,9 +603,9 @@ class ClipperTool:
                 self.load_filter_files()
                 self.file_var.set(filename)
                 self.save_and_update()
-                tk.messagebox.showinfo("Success", f"Config file '{filename}' created successfully!")
+                messagebox.showinfo("Success", f"Config file '{filename}' created successfully!")
             except Exception as e:
-                tk.messagebox.showerror("Error", f"Could not create file:\n{e}")
+                messagebox.showerror("Error", f"Could not create file:\n{e}")
 
         # Modern popup dialog
         popup = tk.Toplevel(self.root)
@@ -670,12 +670,12 @@ class ClipperTool:
     def open_selected_config(self):
         filename = self.file_var.get()
         if not filename:
-            tk.messagebox.showwarning("Warning", "No config file selected!")
+            messagebox.showwarning("Warning", "No config file selected!")
             return
 
         filepath = os.path.join(FILTERS_FOLDER, filename)
         if not os.path.exists(filepath):
-            tk.messagebox.showerror("Error", "Selected config file does not exist!")
+            messagebox.showerror("Error", "Selected config file does not exist!")
             return
 
         try:
@@ -686,7 +686,7 @@ class ClipperTool:
             else:
                 subprocess.call(["xdg-open", filepath])
         except Exception as e:
-            tk.messagebox.showerror("Error", f"Could not open file:\n{e}")
+            messagebox.showerror("Error", f"Could not open file:\n{e}")
 
     def open_config_folder(self):
         try:
@@ -697,7 +697,7 @@ class ClipperTool:
             else:
                 subprocess.call(["xdg-open", FILTERS_FOLDER])
         except Exception as e:
-            tk.messagebox.showerror("Error", f"Could not open folder:\n{e}")
+            messagebox.showerror("Error", f"Could not open folder:\n{e}")
 
     def load_filter_files(self):
         files = [f for f in os.listdir(FILTERS_FOLDER) if f.endswith(".txt")]
